@@ -20,8 +20,14 @@ func Test_Basic(t *testing.T) {
 			totalScore += score
 		}
 		scores[startingMove] = totalScore
-		t.Logf("score at %d -> %.3f", startingMove, totalScore)
+		t.Logf("score at %d -> %+.3f", startingMove, totalScore)
 	}
 
-	assert.Less(t, float32(0.54), scores[4])
+	corners := (scores[0] + scores[2] + scores[6] + scores[8]) / 4.0
+	centers := (scores[1] + scores[3] + scores[5] + scores[7]) / 4.0
+
+	assert.InEpsilon(t, 0.130, corners, 0.01)
+	assert.InEpsilon(t, -0.037, centers, 0.01)
+	assert.InEpsilon(t, 0.285, scores[4], 0.01)
+
 }

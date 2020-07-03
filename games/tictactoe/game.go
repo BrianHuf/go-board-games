@@ -8,6 +8,17 @@ import (
 	"me.dev/go-board-game/common"
 )
 
+/*
+  1 |  2|  4
+  8 | 16| 32
+  64|128|256
+*/
+
+var winningBoardMasks []uint32 = []uint32{
+	7, 56, 448, // horizontal
+	73, 146, 292, // vertical
+	84, 273} // diagonal
+
 // Move ...
 type Move struct {
 	state    uint32
@@ -17,9 +28,12 @@ type Move struct {
 // GetPlayer ...
 func (a Move) GetPlayer() common.Player {
 	if a.previous == nil {
-		return common.GamePlayer{}
+		return common.NoPlayer{}
 	}
-	return common.TwoPlayer{IsPlayer1: isPlayer1(a.state)}
+	if isPlayer1(a.state) {
+		return common.NewPlayer(0)
+	}
+	return common.NewPlayer(1)
 }
 
 // GetPrevious ...
@@ -36,9 +50,7 @@ func (a Move) String() string {
 }
 
 // NextAvailableMoves ...
-func (a Move) NextAvailableMoves() []common.Move {
-	var available []common.Move
-
+func (a Move) NextAvailableMoves() (available []common.Move) {
 	p1 := isPlayer1(a.state)
 	board := getCombinedBoard(a.state)
 	for i := 0; i < 9; i++ {
@@ -57,21 +69,26 @@ func (a Move) NextAvailableMoves() []common.Move {
 		}
 	}
 
-	return available
+	return
 }
 
-// GetWinner ...
-func (a Move) GetWinner() common.Player {
+// GetGameStatus ...
+func (a Move) GetGameStatus() common.GameStatus {
 	if a.previous == nil {
-		return nil
+		return common.NewGameStatusInProgress()
+	}
+
+	if getCombinedBoard(a.state) == 511 {
+		return common.NewGameStatusTied()
 	}
 
 	p1 := isPlayer1(a.state)
-	if isWinningBoard(getBoard(a.state, p1)) {
-		return common.TwoPlayer{IsPlayer1: p1}
+	board := getBoard(a.state, p1)
+	if isWinningBoard(board) {
+		return common.NewGameStatusWinner(a.GetPlayer())
 	}
 
-	return nil
+	return common.NewGameStatusInProgress()
 }
 
 // BoardString CLI based represention of game give current move
@@ -142,7 +159,11 @@ func getCombinedBoard(state uint32) uint32 {
 }
 
 func isWinningBoard(board uint32) bool {
-	return board == 7 || board == 56 || board == 448 || // horizontal
-		board == 73 || board == 584 || board == 4672 || // vertical
-		board == 84 || board == 273 // diagonal
+	for _, check := range winningBoardMasks {
+		ucheck := uint32(check)
+		if ucheck&board == ucheck {
+			return true
+		}
+	}
+	return false
 }

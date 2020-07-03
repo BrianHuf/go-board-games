@@ -1,35 +1,39 @@
 package common
 
-// GamePlayer is always used as the first move in a Game
-type GamePlayer struct {
+import "strconv"
+
+// NoPlayer is always used as the first move in a Game
+type NoPlayer struct {
 }
 
 // ToString ...
-func (a GamePlayer) String() string {
+func (a NoPlayer) String() string {
 	return "<opening>"
 }
 
 // Equals ...
-func (a GamePlayer) Equals(b Player) bool {
-	_, ok := b.(GamePlayer)
+func (a NoPlayer) Equals(b Player) bool {
+	_, ok := b.(NoPlayer)
 	return ok
 }
 
-// TwoPlayer common class to suport two player games
-type TwoPlayer struct {
-	IsPlayer1 bool
+// NewPlayer ...
+func NewPlayer(num uint) PlayerData {
+	return PlayerData{num}
+}
+
+// PlayerData common class to suport n-player games
+type PlayerData struct {
+	num uint
 }
 
 // ToString ...
-func (a TwoPlayer) String() string {
-	if a.IsPlayer1 {
-		return "p1"
-	}
-	return "p2"
+func (a PlayerData) String() string {
+	return "p" + strconv.Itoa(int(a.num+1))
 }
 
 // Equals ...
-func (a TwoPlayer) Equals(b Player) bool {
-	other, ok := b.(TwoPlayer)
-	return ok && (a.IsPlayer1 == other.IsPlayer1)
+func (a PlayerData) Equals(b Player) bool {
+	other, ok := b.(PlayerData)
+	return ok && (a.num == other.num)
 }
