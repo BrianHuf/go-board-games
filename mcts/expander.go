@@ -2,31 +2,29 @@ package mcts
 
 import "math/rand"
 
-// ExpandSelector interface to weigh nodes
-type ExpandSelector func(nodes []Node) (selected Node)
-
-// BasicExpand get next
-func BasicExpand(selected Node) (expanded Node) {
-	return Expand(selected, BasicExpandSelect)
+// Expand ...
+func Expand(selected Node, config Config) (newNode Node) {
+	if shouldExpand(selected) {
+		addAvailableMoves(selected)
+		children := selected.GetChildren()
+		newNode = config.ExpandSelector(children)
+		return
+	}
+	return selected
 }
 
-// Expand ...
-func Expand(selected Node, selector ExpandSelector) (expanded Node) {
-	if selected.visits == 0 || selected.move.GetGameStatus().IsDone() {
-		return selected
-	}
+func shouldExpand(node Node) bool {
+	return (node.IsRoot() || node.GetVisits() == 0) && !node.GetMove().GetGameStatus().IsDone()
+}
 
-	for _, move := range selected.move.NextAvailableMoves() {
-		selected.addChild(move)
-	}
-
-	expanded = selector(selected.children)
-	return
+func addAvailableMoves(node Node) {
+	available := node.GetMove().NextAvailableMoves()
+	node.setChildren(&available)
 }
 
 // BasicExpandSelect random uniform selection
-func BasicExpandSelect(nodes []Node) (selected Node) {
-	len := len(nodes)
-	selected = nodes[rand.Intn(len)]
+func BasicExpandSelect(nodes *[]Node) (selected Node) {
+	len := len(*nodes)
+	selected = (*nodes)[rand.Intn(len)]
 	return
 }

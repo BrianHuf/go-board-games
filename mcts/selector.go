@@ -5,36 +5,40 @@ import (
 	"math/rand"
 )
 
-// SelectorWeigher interface to weigh nodes
-type SelectorWeigher func(node Node) (weight float32)
-
-// BasicSelector repeatedly pick node children until more children are found
-func BasicSelector(root Node) Node {
-	for current := root; ; current = pickNext(current, BasicWeight) {
-		if !current.hasChildren() {
+// Selector select a node to expand
+func Selector(root Node, config Config) Node {
+	for current := root; ; current = pickNext(current, config.SelectorWeigher) {
+		if !current.HasChildren() {
 			return current
 		}
 	}
 }
 
-func pickNext(node Node, weigher SelectorWeigher) (selected Node) {
-	var weights []float32 = make([]float32, len(node.children))
-	for i, node := range node.children {
+func pickNext(node Node, weigher SelectorWeigherType) (selected Node) {
+	children := *node.GetChildren()
+
+	var weights []float32 = make([]float32, len(children))
+	for i, node := range children {
 		weights[i] = weigher(node)
 	}
+
 	index := weightedRandom(weights)
-	selected = node.children[index]
+	selected = children[index]
 	return
 }
 
-var c float64 = math.Sqrt(2)
+var c float32 = float32(math.Sqrt(2))
 
-// BasicWeight textbook mcts node selection
-func BasicWeight(node Node) (weight float32) {
-	wi := node.score
-	ni := float64(node.visits)
-	Ni := float64(node.parent.visits) + 1.0
-	weight = float32(wi/ni + c*math.Log(Ni)/ni)
+// BasicWeigher textbook mcts node selection
+// FIXME equation adjust to avoid NaN and inf
+func BasicWeigher(node Node) (weight float32) {
+	wi := node.GetScore()
+	ni := float32(node.GetVisits()) + 1.0
+	Ni := float64(node.GetParent().GetVisits()) + 1.0
+	weight = float32(wi/ni + c*float32(math.Log(Ni))/ni)
+	if weight < 0 {
+		return 0
+	}
 	return
 }
 

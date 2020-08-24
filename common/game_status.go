@@ -8,30 +8,30 @@ type GameStatusData struct {
 
 // NewGameStatusWinner ...
 func NewGameStatusWinner(p Player) GameStatus {
-	return GameStatusData{isDone: true, winner: p}
+	return &GameStatusData{isDone: true, winner: p}
 }
 
 // NewGameStatusTied ...
 func NewGameStatusTied() GameStatus {
-	return GameStatusData{isDone: true, winner: nil}
+	return &GameStatusData{isDone: true, winner: nil}
 }
 
 // NewGameStatusInProgress ...
 func NewGameStatusInProgress() GameStatus {
-	return GameStatusData{isDone: false, winner: nil}
+	return &GameStatusData{isDone: false, winner: nil}
 }
 
 // IsDone ...
-func (status GameStatusData) IsDone() bool {
+func (status *GameStatusData) IsDone() bool {
 	return status.isDone
 }
 
 // GetWinner ...
-func (status GameStatusData) GetWinner() Player {
+func (status *GameStatusData) GetWinner() Player {
 	return status.winner
 }
 
-func (status GameStatusData) String() string {
+func (status *GameStatusData) String() string {
 	if status.isDone {
 		if status.winner == nil {
 			return "tie"

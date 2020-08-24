@@ -25,7 +25,7 @@ type Move interface {
 	GetGameStatus() GameStatus
 	MoveString() string
 	NextAvailableMoves() []Move
-	PlayMovesByIndex(moves []int) Move
+	PlayMovesByIndex(moves *[]int) Move
 	PlayMovesByString(moves string) Move
 	fmt.Stringer
 }

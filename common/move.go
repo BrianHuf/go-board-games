@@ -4,26 +4,27 @@ package common
 type BasicMove struct{}
 
 // PlayMovesByIndex ...
-func PlayMovesByIndex(startingMove Move, moves []int) Move {
+func PlayMovesByIndex(startingMove Move, moves *[]int) Move {
 	var ret Move = startingMove
-	for _, moveIndex := range moves {
+	for _, moveIndex := range *moves {
 		ret = ret.NextAvailableMoves()[moveIndex]
 	}
 	return ret
 }
 
 // PlayMovesByString ...
-func PlayMovesByString(startingMove Move, moves string) Move {
-	var ret Move = startingMove
+func PlayMovesByString(startingMove Move, moves string) (nextMove Move) {
+	nextMove = startingMove
 	for _, move := range moves {
 		lookFor := string(move)
-		ret = findMove(lookFor, ret.NextAvailableMoves())
+		lookInMoves := nextMove.NextAvailableMoves()
+		nextMove = findMove(lookFor, &lookInMoves)
 	}
-	return ret
+	return
 }
 
-func findMove(lookFor string, moves []Move) Move {
-	for _, move := range moves {
+func findMove(lookFor string, moves *[]Move) Move {
+	for _, move := range *moves {
 		check := move.MoveString()
 		if check == lookFor {
 			return move
