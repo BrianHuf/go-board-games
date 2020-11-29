@@ -30,15 +30,16 @@ func pickNext(node Node, weigher SelectorWeigherType) (selected Node) {
 var c float32 = float32(math.Sqrt(2))
 
 // BasicWeigher textbook mcts node selection
-// FIXME equation adjust to avoid NaN and inf
 func BasicWeigher(node Node) (weight float32) {
 	wi := node.GetScore()
-	ni := float32(node.GetVisits()) + 1.0
-	Ni := float64(node.GetParent().GetVisits()) + 1.0
-	weight = float32(wi/ni + c*float32(math.Log(Ni))/ni)
-	if weight < 0 {
-		return 0
+	ni := float32(node.GetVisits())
+	Ni := float64(node.GetParent().GetVisits())
+
+	if ni == 0 {
+		return 1.0 // TODO confirm 1.0 is the right value
 	}
+
+	weight = wi/ni + c*float32(math.Log(Ni))/ni
 	return
 }
 

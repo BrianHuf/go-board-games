@@ -14,8 +14,8 @@ import (
 // 5.      Playout determines how good the expanded move is
 // 6.      Propagator update the score and visits in the Node tree
 // 7.  TreeSelect finds the best node
-func FindBestMove(move common.Move, config Config) (best Node) {
-	root := newSingleThreadedRootNode(move)
+func FindBestMove(move common.Move, config Config) (best Node, root Node) {
+	root = newSingleThreadedRootNode(move)
 	config.TreeBuilder(root, config)
 	best = config.TreeSelector(root)
 	return

@@ -111,6 +111,10 @@ func (a *Move) BoardString() string {
 
 // MoveString represents the current move
 func (a *Move) MoveString() string {
+	if (a.previous == nil) {
+		return "-"
+	}
+
 	diff := (a.state - (*(a.previous)).state) & 262143
 	if !isPlayer1(a.state) {
 		diff = diff >> 9

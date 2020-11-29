@@ -1,6 +1,9 @@
 package mcts
 
 import (
+	"fmt"
+	"strings"
+
 	"me.dev/go-board-game/common"
 )
 
@@ -81,4 +84,25 @@ func (node *NodeSingleThread) GetChildren() (children *[]Node) {
 func (node *NodeSingleThread) addScore(score float32) {
 	node.score += score
 	node.visits++
+}
+
+func (node *NodeSingleThread) String() string {
+	return node.paddedString(0, 1)
+}
+
+func (node *NodeSingleThread) paddedString(depth int, maxDepth int) string {
+	node.move.MoveString()
+	var ret = fmt.Sprintf("%s%s (%3.2f/%d)\n", 
+		strings.Repeat("  ", depth),
+		node.move.MoveString(),
+		node.GetScore(),
+		node.GetVisits())
+
+	if depth < maxDepth {
+		for _, child := range node.children {
+			ret += child.(*NodeSingleThread).paddedString(depth+1, maxDepth)
+		}	
+	}
+
+	return ret
 }

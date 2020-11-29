@@ -31,5 +31,4 @@ func Test_Playout(t *testing.T) {
 	assert.InEpsilon(t, 0.563, corners, 0.01)
 	assert.InEpsilon(t, 0.483, centers, 0.01)
 	assert.InEpsilon(t, 0.642, scores[4], 0.01)
-
 }

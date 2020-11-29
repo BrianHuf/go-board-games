@@ -1,14 +1,14 @@
 package mcts
 
 import (
-	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"me.dev/go-board-game/games/tictactoe"
 )
 
 func Test_FindBestMove(t *testing.T) {
-	move := tictactoe.NewGame()
-	bestMove := FindBestMove(move, BasicConfig())
-	fmt.Println("Best move = ", bestMove.GetMove().BoardString())
+	emptyBoard := tictactoe.NewGame()
+	bestMove, _ := FindBestMove(emptyBoard, BasicConfig())
+	assert.Equal(t, "4", bestMove.GetMove().MoveString())
 }
