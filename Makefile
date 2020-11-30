@@ -1,14 +1,12 @@
-clean: 
-	go clean -testcache ...
-	
-build:
-	go build ./...
+BACKEND = $(CURDIR)/backend/src
 
-test:
-	go test -v ./...
+build-backend:
+	cd $(BACKEND) &&\
+	make build
 
-testf:
-	go test --count=1 -v ./...
+test-backend:
+	cd $(BACKEND) &&\
+	make testf
 
-run:
-	go run main.go
+
+build: build-backend
