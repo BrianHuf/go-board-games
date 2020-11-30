@@ -138,6 +138,11 @@ func NewGame() common.Move {
 	return &Move{262144, nil}
 }
 
+// IsCenter return True is move is the in the center of the board
+func IsCenter(move common.Move) bool {
+	return move.MoveString() == "4"
+}
+
 // local functions
 func isPlayer1(state uint32) bool {
 	return state&262144 == 0

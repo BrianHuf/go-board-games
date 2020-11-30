@@ -21,10 +21,3 @@ func FindBestMove(move common.Move, config Config) (best Node, root Node) {
 	return
 }
 
-// DoRound select, expand, playout, and propagate
-func DoRound(root Node, config Config) {
-	selected := Selector(root, config)
-	new := Expand(selected, config)
-	score, _ := Playout(new.GetMove(), config)
-	Propagate(new, score, config)
-}

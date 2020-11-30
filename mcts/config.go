@@ -47,3 +47,16 @@ func BasicConfig() Config {
 		SelectorWeigher: BasicWeigher,
 		PropagateToNode: BasicPropgateUpdate}
 }
+
+// MultithreadedConfig use when playouts are computationally expensive
+func MultithreadedConfig() Config {
+	return Config{
+		TreeBuilder:     FixedIterationsParallel(10000, 20),
+		TreeSelector:    SelectByMostVisits,
+		PlayoutSelector: BasicPlayoutSelector,
+		PlayoutScorer:   BasicPlayoutScorer,
+		PlayoutMaxMoves: 10,
+		ExpandSelector:  BasicExpandSelect,
+		SelectorWeigher: BasicWeigher,
+		PropagateToNode: BasicPropgateUpdate}
+}
