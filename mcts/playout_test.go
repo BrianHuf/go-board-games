@@ -22,7 +22,7 @@ func Test_Playout(t *testing.T) {
 			totalScore += score
 		}
 		scores[startingMove] = totalScore
-		t.Logf("score at %d -> %+.3f", startingMove, totalScore)
+		t.Logf("score at %d -> %4.3f", startingMove, totalScore)
 	}
 
 	corners := (scores[0] + scores[2] + scores[6] + scores[8]) / 4.0
