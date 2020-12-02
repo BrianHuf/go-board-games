@@ -20,6 +20,7 @@ type GameStatus interface {
 // with the GamePlayer
 type Move interface {
 	BoardString() string
+	GetJSON() interface{}
 	GetPlayer() Player
 	GetPrevious() Move
 	GetGameStatus() GameStatus

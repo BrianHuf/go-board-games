@@ -10,7 +10,9 @@ import (
 
 /*
   1 |  2|  4
+  --|---|---
   8 | 16| 32
+  --|---|---
   64|128|256
 */
 
@@ -25,6 +27,37 @@ type Move struct {
 	previous *Move
 }
 
+// StateJSON ...
+type StateJSON struct {
+	State string `json:"state"`
+	LastMove string `json:"lastMove"`
+	IsDone bool `json:"isDone"`
+	Winner string `json:"winner,omitempty"`
+	NextPlayer string `json:"nextPlayer,omitempty"`
+}
+
+// GetJSON ...
+func (a *Move) GetJSON() interface{} {
+	status := a.GetGameStatus()
+
+	var winner string = ""
+	var nextPlayer string = ""
+	if status.IsDone() {
+		if (status.GetWinner() != nil) {
+			winner = status.GetWinner().String()
+		}
+	} else {
+		nextPlayer = a.nextPlayer().String()
+	}
+
+	return StateJSON{
+		State: a.getBoardString(), 
+		LastMove: a.MoveString(),
+		IsDone: status.IsDone(),
+		Winner: winner,
+		NextPlayer: nextPlayer}
+}
+
 // GetPlayer ...
 func (a *Move) GetPlayer() common.Player {
 	if a.previous == nil {
@@ -34,6 +67,14 @@ func (a *Move) GetPlayer() common.Player {
 		return common.NewPlayer(0)
 	}
 	return common.NewPlayer(1)
+}
+
+func (a *Move) nextPlayer() common.Player {
+	if a.previous == nil || !isPlayer1(a.state) {
+		return common.NewPlayer(0)
+	} else {
+		return common.NewPlayer(1)
+	}
 }
 
 // GetPrevious ...
@@ -90,23 +131,29 @@ func (a *Move) GetGameStatus() common.GameStatus {
 
 // BoardString CLI based represention of game give current move
 func (a *Move) BoardString() string {
+	b := a.getBoardString()
+
+	return fmt.Sprintf("%c|%c|%c\n-----\n%c|%c|%c\n-----\n%c|%c|%c\n",
+		b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8])
+}
+
+func (a *Move) getBoardString() string {
 	board1 := getBoard(a.state, true)
 	board2 := getBoard(a.state, false)
 
-	var b [9]string
+	var b = ""
 	for i := 0; i < 9; i++ {
 		bit := uint32(1) << i
 		if board1&bit > 0 {
-			b[i] = "X"
+			b += "X"
 		} else if board2&bit > 0 {
-			b[i] = "O"
+			b += "O"
 		} else {
-			b[i] = " "
+			b += " "
 		}
 	}
 
-	return fmt.Sprintf("%s|%s|%s\n-----\n%s|%s|%s\n-----\n%s|%s|%s\n",
-		b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8])
+	return b
 }
 
 // MoveString represents the current move

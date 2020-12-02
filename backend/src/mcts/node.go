@@ -18,7 +18,18 @@ type Node interface {
 	GetMove() common.Move
 	GetScore() float32
 	GetVisits() int
+	GetJSON() NodeJSON
 }
+
+
+// NodeJSON ...
+type NodeJSON struct {
+	Move interface{} `json:"move"`
+	Children []NodeJSON `json:"children"`
+	Visits int `json:"visits"`
+	Score float32 `json:"score"`
+}
+
 
 // NodeSingleThread ...
 type NodeSingleThread struct {
@@ -105,4 +116,21 @@ func (node *NodeSingleThread) paddedString(depth int, maxDepth int) string {
 	}
 
 	return ret
+}
+
+// GetJSON ...
+func (node *NodeSingleThread) GetJSON() NodeJSON {
+	var children []NodeJSON = nil
+	if len(node.children) > 0 {
+		children = make([]NodeJSON, len(node.children))
+		for i, child := range node.children {
+			children[i] = child.GetJSON()
+		}
+	}
+
+	return NodeJSON{
+		Move: node.move.GetJSON(), 
+		Children: children, 
+		Visits: node.visits, 
+		Score: node.score}
 }

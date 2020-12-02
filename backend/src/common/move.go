@@ -14,6 +14,10 @@ func PlayMovesByIndex(startingMove Move, moves *[]int) Move {
 
 // PlayMovesByString ...
 func PlayMovesByString(startingMove Move, moves string) (nextMove Move) {
+	if moves == "-" {
+		return startingMove
+	}
+
 	nextMove = startingMove
 	for _, move := range moves {
 		lookFor := string(move)
