@@ -7,7 +7,6 @@ import Welcome from "./Welcome";
 import "./App.css";
 
 const App = () => {
-  console.log("!!!")
   return (
     <Router history={history}>
       <div>

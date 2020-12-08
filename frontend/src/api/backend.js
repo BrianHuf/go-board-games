@@ -1,21 +1,22 @@
 import axios from "axios";
 
-const restUrl = process.env.NODE_ENV === "production" 
-    ? `${window.location.origin}/api` 
-    : "http://localhost:10000/api"
+const restUrl =
+    process.env.NODE_ENV === "production"
+        ? `${window.location.origin}/api`
+        : "http://localhost:10000/api";
 
 class BackendApi {
     backend = axios.create({
         baseURL: restUrl,
-        mode: 'no-cors',
     });
 
     getMoves(game, playedMoves) {
         return this.backend.get(`${game}/${playedMoves}/moves`);
     }
 
-    getAiMove(game, playedMoves) {
-        return this.backend.get(`${game}/${playedMoves}/ai`);
+    async getAiMove(game, playedMoves) {
+        console.log(`getAiMove ${game} ${playedMoves}`);
+        return await this.backend.get(`${game}/${playedMoves}/ai`);
     }
 }
 
@@ -267,9 +268,9 @@ class BackendApiMock {
     }
 }
 
-const rest = new BackendApi();
-    // process.env.NODE_ENV === "production"
-    //     ? new BackendApi()
-    //     : new BackendApiMock();
+const rest =
+    process.env.REACT_APP_MODE === "test"
+        ? new BackendApiMock()
+        : new BackendApi();
 
 export default rest;
