@@ -9,8 +9,6 @@ import { Circle, CircleFill, Square, SquareFill } from "react-bootstrap-icons";
 import rest from "../../api/backend";
 
 export default class TicTacToe extends React.Component {
-    fixme = false;
-
     state = {
         board: null,
         loading: false,
