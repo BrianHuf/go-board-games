@@ -17,7 +17,6 @@ export default class TicTacToe extends React.Component {
         isDone: false,
         winner: null,
         mode: "pvp",
-        aiRequested: false,
     };
 
     componentDidMount() {
@@ -48,7 +47,7 @@ export default class TicTacToe extends React.Component {
             isDone: response.isDone,
             winner: response.winner,
             nextPlayer: response.nextPlayer,
-            loading: false
+            loading: false,
         });
 
         if (this.isComputerMoveNext()) {
@@ -57,7 +56,7 @@ export default class TicTacToe extends React.Component {
     }
 
     async onPlayAi() {
-        console.log("onPlayAI 11")
+        console.log("onPlayAI");
         const moves = this.getPlayedMoves(this.props.location.pathname);
         const aiMoves = await rest.getAiMove("tictactoe", moves);
 
@@ -69,12 +68,11 @@ export default class TicTacToe extends React.Component {
                 maxScore = child.score;
             }
         });
-        console.log("onPlayAI 22")
         this.onPlayMove(best.move.lastMove);
     }
 
     onRestart() {
-        console.log(this.state.mode);        
+        console.log(this.state.mode);
         this.setState({
             ...this.state,
             board: null,
@@ -82,15 +80,11 @@ export default class TicTacToe extends React.Component {
             isDone: false,
             winner: null,
         });
-        this.onLoadBoard('-');
+        this.onLoadBoard("-");
     }
 
     render() {
-        console.log(
-            `RENDER ${Date.now()} ${JSON.stringify(
-                this.state
-            )}`
-        );
+        console.log(`RENDER ${Date.now()} ${JSON.stringify(this.state)}`);
         if (this.state.board) {
             const isComputerNext = this.isComputerMoveNext();
             const cb =
@@ -196,15 +190,18 @@ export default class TicTacToe extends React.Component {
         if (!mode) {
             mode = this.state.mode;
         }
-        
+
         const currentPlayer = parseInt(this.state.nextPlayer.substr(1));
         const index = 2 * (currentPlayer - 1);
         const playerMode = mode.substr(index, index + 1);
-        console.log(`playerMode ${index} ${this.state.mode} ${currentPlayer} ${playerMode}`)
+        console.log(
+            `playerMode ${index} ${this.state.mode} ${currentPlayer} ${playerMode}`
+        );
         return playerMode === "c";
     }
 
-    async onPlayMove(index) {        
+    async onPlayMove(index) {
+        console.log("onPlayMove");
         const newUrl = this.getUrlForNextMove(index);
         this.props.history.push(newUrl);
 
