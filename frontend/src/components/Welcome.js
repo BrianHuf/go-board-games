@@ -10,6 +10,9 @@ class Welcome extends React.Component {
         <Link to="/game/tictactoe/-">
           <h2>Tic Tic Toe</h2>
         </Link>
+        <Link to="/game/siam/-">
+          <h2>Siam</h2>
+        </Link>        
       </div>
     );
   }

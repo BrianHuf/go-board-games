@@ -177,7 +177,7 @@ func (a *Move) PlayMovesByIndex(moves *[]int) common.Move {
 
 // PlayMovesByString ...
 func (a *Move) PlayMovesByString(moves string) common.Move {
-	return common.PlayMovesByString(a, moves)
+	return common.PlayMovesByString(a, moves, 1)
 }
 
 // NewGame start a new TicToe game by returning the opening move

@@ -9,6 +9,7 @@ import (
 	"github.com/rs/cors"
 
 	"me.dev/go-board-game/common"
+	"me.dev/go-board-game/games/siam"
 	"me.dev/go-board-game/games/tictactoe"
 	"me.dev/go-board-game/mcts"
 )
@@ -24,8 +25,9 @@ func handleRequests() {
 
     r := mux.NewRouter().StrictSlash(true)
 
-    r.HandleFunc("/api/tictactoe/{state}/moves", handleTictactoeMoves)
-    r.HandleFunc("/api/tictactoe/{state}/ai", handleTictactoeAi)
+    addGame(r, "tictactoe", tictactoe.NewGame)
+    addGame(r, "siam", siam.NewGame)
+
     r.PathPrefix("/").Handler(http.StripPrefix("/", fs))
 
     c := cors.New(cors.Options{
@@ -37,35 +39,43 @@ func handleRequests() {
     log.Fatal(http.ListenAndServe(":10000", handler))
 }
 
-func handleTictactoeMoves(w http.ResponseWriter, r *http.Request) {
-    state := mux.Vars(r)["state"]
-    game := tictactoe.NewGame().PlayMovesByString(state)
-    status := game.GetGameStatus()
-    moves := game.NextAvailableMoves()
+func addGame(r *mux.Router, name string, gameCtor func() common.Move) {
+    handleMoves := func(w http.ResponseWriter, r *http.Request) {
+        state := mux.Vars(r)["state"]
+        game := gameCtor().PlayMovesByString(state)
+        status := game.GetGameStatus()
+        moves := game.NextAvailableMoves()
+        
+        var response GameDto
+        var movesDto []MoveDto
     
-    var response GameDto
-    var movesDto []MoveDto
-
-    if status.IsDone() {
-        moves = []common.Move {}
+        if status.IsDone() {
+            moves = []common.Move {}
+        }
+    
+        movesDto = make([]MoveDto, len(moves))
+        for i, move := range moves {
+            movesDto[i] = MoveDto{Value:move.GetJSON()}
+        }
+        response =  GameDto{
+            State: game.GetJSON(),
+            Moves: movesDto}
+        
+        json.NewEncoder(w).Encode(response)
     }
 
-    movesDto = make([]MoveDto, len(moves))
-    for i, move := range moves {
-        movesDto[i] = MoveDto{Value:move.GetJSON()}
+    handleAi := func(w http.ResponseWriter, r *http.Request) {
+        state := mux.Vars(r)["state"]
+        game := gameCtor().PlayMovesByString(state)
+        
+        _, root := mcts.FindBestMove(game, mcts.BasicConfig())
+        
+        json.NewEncoder(w).Encode(root.GetJSON())
     }
-    response =  GameDto{
-        State: game.GetJSON(),
-        Moves: movesDto}
-    
-    json.NewEncoder(w).Encode(response)
+
+    r.HandleFunc("/api/"+name+"/{state}/moves", handleMoves)
+    r.HandleFunc("/api/"+name+"/{state}/ai", handleAi)
 }
 
-func handleTictactoeAi(w http.ResponseWriter, r *http.Request) {
-    state := mux.Vars(r)["state"]
-    game := tictactoe.NewGame().PlayMovesByString(state)
-    
-    _, root := mcts.FindBestMove(game, mcts.BasicConfig())
-    
-    json.NewEncoder(w).Encode(root.GetJSON())
-}
+
+

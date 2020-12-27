@@ -4,11 +4,12 @@ import Container from "react-bootstrap/Container";
 import Table from "react-bootstrap/Table";
 import Spinner from "react-bootstrap/Spinner";
 import Form from "react-bootstrap/Form";
-import { Circle, CircleFill, Square, SquareFill } from "react-bootstrap-icons";
+import { ArrowDownCircleFill, ArrowUpCircleFill, ArrowLeftCircleFill, ArrowRightCircleFill,
+    ArrowDownCircle, ArrowUpCircle, ArrowLeftCircle, ArrowRightCircle , Dot, SquareFill} from "react-bootstrap-icons";
 
 import rest from "../../api/backend";
 
-export default class TicTacToe extends React.Component {
+export default class Siam extends React.Component {
     state = {
         board: null,
         loading: true,
@@ -37,26 +38,30 @@ export default class TicTacToe extends React.Component {
     async onLoadBoard(moves) {
         this.setState({ ...this.state, loading: true });
 
-        const info = await rest.getMoves("tictactoe", moves);
-        const response = info.data.state;
+        const info = await rest.getMoves("siam", moves);
+        const response = info.data;
+        console.log("onLoadBoard");
+        console.log(response);
+        console.log(this);
         this.setState({
             ...this.state,
             board: response.state,
-            isDone: response.isDone,
-            winner: response.winner,
-            nextPlayer: response.nextPlayer,
+            moves: response.moves,
+            isDone: response.state.isDone,
+            winner: response.state.winner,
+            nextPlayer: response.state.nextPlayer,
             loading: false,
         });
 
-        if (this.isComputerMoveNext()) {
-            this.onPlayAi();
-        }
+        // if (this.isComputerMoveNext()) {
+        //     this.onPlayAi();
+        // }
     }
 
     async onPlayAi() {
         console.log("onPlayAI");
         const moves = this.getPlayedMoves(this.props.location.pathname);
-        const aiMoves = await rest.getAiMove("tictactoe", moves);
+        const aiMoves = await rest.getAiMove("Siam", moves);
 
         let maxScore = -1;
         let best = null;
@@ -83,27 +88,7 @@ export default class TicTacToe extends React.Component {
 
     render() {
         console.log(`RENDER ${Date.now()} ${JSON.stringify(this.state)}`);
-        if (this.state.board) {
-            const isComputerNext = this.isComputerMoveNext();
-            const cb =
-                this.state.loading || this.state.isDone || isComputerNext
-                    ? null
-                    : this.onPlayMove.bind(this);
-
-            const message = this.getMessage(isComputerNext);
-
-            return (
-                <>
-                    <h1 className="pb-2">Tic Tac Toe</h1>
-                    {this.renderPlayMode()}
-                    <TicTacToeBoard
-                        board={this.state.board}
-                        onPlayMove={cb}
-                        message={message}
-                    />
-                </>
-            );
-        } else {
+        if (!this.state.board) {
             return (
                 <div>
                     <h1>LOADING</h1>
@@ -111,6 +96,27 @@ export default class TicTacToe extends React.Component {
                 </div>
             );
         }
+
+        const isComputerNext = this.isComputerMoveNext();
+
+        const cb =
+            this.state.loading || this.state.isDone || isComputerNext
+                ? null
+                : this.onPlayMove.bind(this);
+
+        const message = this.getMessage(isComputerNext);
+
+        return (
+            <>
+                <h1 className="pb-2">Siam</h1>
+                {this.renderPlayMode()}
+                <SiamBoard
+                    board={this.state.board}
+                    onPlayMove={cb}
+                    message={message}
+                />
+            </>
+        );
     }
 
     renderPlayMode() {
@@ -164,10 +170,7 @@ export default class TicTacToe extends React.Component {
             return (
                 <div>
                     <p>{msg}</p>
-                    <Link
-                        onClick={this.onRestart.bind(this)}
-                        to="/game/tictactoe/-"
-                    >
+                    <Link onClick={this.onRestart.bind(this)} to="/game/Siam/-">
                         Restart
                     </Link>
                 </div>
@@ -217,13 +220,19 @@ export default class TicTacToe extends React.Component {
     }
 }
 
-class TicTacToeBoard extends React.Component {
+class SiamBoard extends React.Component {
     ICON_SIZE = 50;
     MAP_VALUE_TO_ICON = {
-        " ": SquareFill,
-        X: CircleFill,
-        O: Circle,
-        S: Square,
+        '.': Dot,
+        M: SquareFill,
+        D: ArrowDownCircleFill,
+        U: ArrowUpCircleFill,
+        L: ArrowLeftCircleFill,
+        R: ArrowRightCircleFill,
+        d: ArrowDownCircle,
+        u: ArrowUpCircle,
+        l: ArrowLeftCircle,
+        r: ArrowRightCircle
     };
 
     state = {
@@ -239,6 +248,8 @@ class TicTacToeBoard extends React.Component {
                         {this.renderRow(0)}
                         {this.renderRow(1)}
                         {this.renderRow(2)}
+                        {this.renderRow(3)}
+                        {this.renderRow(4)}
                     </tbody>
                 </Table>
             </Container>
@@ -248,40 +259,29 @@ class TicTacToeBoard extends React.Component {
     renderRow(row) {
         return (
             <tr>
-                {this.renderSquare(3 * row)}
-                {this.renderSquare(3 * row + 1)}
-                {this.renderSquare(3 * row + 2)}
+                {this.renderSquare(5 * row)}
+                {this.renderSquare(5 * row + 1)}
+                {this.renderSquare(5 * row + 2)}
+                {this.renderSquare(5 * row + 3)}
+                {this.renderSquare(5 * row + 4)}
             </tr>
         );
     }
 
-    renderSquare(index) {
-        const key =
-            this.state.selected === index ? "S" : this.props.board[index];
+    renderSquare(index) {        
+        const squareState = this.props.board.state[index];
+        console.log(`${index} -> ${squareState}`);
+        const SiamSquare = this.MAP_VALUE_TO_ICON[squareState];
+        const style = squareState === '.' ? { visibility: "hidden" } : {}
 
-        const TicTacToeSquare = this.MAP_VALUE_TO_ICON[key];
-
-        if (key === " ") {
-            const onClick = this.props.onPlayMove
-                ? this.onClickSquare.bind(this, index)
-                : null;
-
-            return (
-                <td onClick={onClick}>
-                    <TicTacToeSquare
-                        style={{ visibility: "hidden" }}
-                        size={this.ICON_SIZE}
-                        color="yellow"
-                    />
-                </td>
-            );
-        }
-
-        const color = key === "S" ? "yellow" : "black";
+        const onClick = (e) => this.onClickSquare(index);
 
         return (
-            <td onClick={this.onClickSquare.bind(this, index)}>
-                <TicTacToeSquare size={this.ICON_SIZE} color={color} />
+            <td onClick={onClick}>
+                <SiamSquare
+                    style={style}
+                    size={this.ICON_SIZE}
+                />
             </td>
         );
     }

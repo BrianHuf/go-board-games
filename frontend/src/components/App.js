@@ -3,6 +3,7 @@ import { Router, Route, Link } from "react-router-dom";
 
 import history from "./History";
 import TicTacToe from "./games/TicTacToe";
+import Siam from "./games/Siam";
 import Welcome from "./Welcome";
 import "./App.css";
 
@@ -20,6 +21,11 @@ const App = () => {
             path="/game/tictactoe/:playedMoves"
             component={TicTacToe}
           />
+          <Route
+            exact
+            path="/game/siam/:playedMoves"
+            component={Siam}
+          />          
         </div>
       </div>
     </Router>
