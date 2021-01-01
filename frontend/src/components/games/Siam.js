@@ -246,10 +246,20 @@ class SiamBoard extends React.Component {
 
   state = {
     selectedSource: null,
+    selectedReserveDirection: null,
     selectedTarget: null,
   };
 
-  RESERVE = -51;
+  OFFBOARD = -51;
+
+  onClear() {
+    console.log("ON CLEAR");
+    this.setState({
+      selectedSource: null,
+      selectedReserveDirection: null,
+      selectedTarget: null,
+    });
+  }
 
   render() {
     return (
@@ -269,12 +279,12 @@ class SiamBoard extends React.Component {
             <tr>
               <td>
                 <div style={{ width: this.ICON_SIZE, height: this.ICON_SIZE }}>
-                  {this.renderReserve(0)}
+                  {this.renderOffboard(0)}
                 </div>
               </td>
               <td>
                 <div style={{ width: this.ICON_SIZE, height: this.ICON_SIZE }}>
-                  {this.renderReserve(1)}
+                  {this.renderOffboard(1)}
                 </div>
               </td>
             </tr>
@@ -284,13 +294,20 @@ class SiamBoard extends React.Component {
     );
   }
 
-  renderReserve(player) {
+  renderOffboard(player) {
     const isCurrentPlayer = this.props.board.nextPlayer === `p${player + 1}`;
     const Icon = player ? Circle : CircleFill;
 
-    const selector = isCurrentPlayer
-      ? this.getCellSelector(this.RESERVE)
-      : null;
+    const selector = isCurrentPlayer ? this.renderOffboardSelector() : null;
+
+    if (!selector) {
+      return (
+        <div onClick={this.onClear.bind(this)}>
+          <Icon size={this.ICON_SIZE} />
+        </div>
+      );
+    }
+
     return (
       <div style={{ width: this.ICON_SIZE, height: this.ICON_SIZE }}>
         <Icon size={this.ICON_SIZE} />
@@ -316,9 +333,12 @@ class SiamBoard extends React.Component {
     const SiamSquare = this.MAP_VALUE_TO_ICON[squareState];
     const style = squareState === "." ? { visibility: "hidden" } : {};
 
-    const selector = this.getCellSelector(index);
+    const selector = this.renderSquareSelector(index);
+
+    const onClear = selector ? null : this.onClear.bind(this);
+
     return (
-      <td>
+      <td onClick={onClear}>
         <div style={{ width: this.ICON_SIZE, height: this.ICON_SIZE }}>
           <SiamSquare style={style} size={this.ICON_SIZE} />
           {selector}
@@ -327,37 +347,81 @@ class SiamBoard extends React.Component {
     );
   }
 
-  getCellSelector(index) {
-    if (this.props.onPlayMove == null) {
-        return null;
+  renderOffboardSelector() {
+    if (this.state.selectedSource === this.OFFBOARD) {
+      return this.renderSelectDirection(
+        this.OFFBOARD,
+        this.state.selectedReserveDirection
+      );
     }
     
-    if (index === this.state.selectedSource) {
-      return this.renderSelector(index, true);
-    } else if (index === this.state.selectedTarget) {
-      return this.renderDirection(index);
+    if (this.state.selectedSource) {
+      return null;
     }
 
-    let stage = 0;
-    if (this.state.selectedSource == null) {
-      stage = 0;
-    } else {
-      stage = 1;
+    if (this.state.selectedTarget != null) {
+      return null;
     }
 
     const matches = this.props.moves.filter(
-      (m) => m.value.lastMove.charCodeAt(stage) - 97 === index
+      (m) => m.value.lastMove.charCodeAt(0) < 97
     );
     if (matches.length) {
-      return this.renderSelector(index, false);
+      return this.renderSelectSquare(
+        this.OFFBOARD,
+        this.state.selectedSource != null
+      );
+    }
+  }
+
+  renderSquareSelector(index) {
+    const matches = this.props.moves
+      .map((m) => this.getRenderMatch(m, index))
+      .filter((m) => m != null);
+    if (matches.length) {
+      return matches[0];
     }
 
     return null;
   }
 
-  renderSelector(index, alreadySelected) {
+  getRenderMatch(move, index) {
+    if (this.props.onPlayMove == null) {
+      return null;
+    }
+
+    if (this.state.selectedTarget) {
+      if (index === this.state.selectedTarget) {
+        return this.renderSelectDirection(index);
+      }
+    } else if (this.state.selectedSource) {
+      if (this.state.selectedSource === this.OFFBOARD) {
+        const dir = this.state.selectedReserveDirection;
+        if (dir == null) {
+          return null;
+        }
+
+        if (
+          move.value.lastMove[0] === dir &&
+          move.value.lastMove.charCodeAt(1) - 97 === index
+        ) {
+          return this.renderSelectSquare(index, false);
+        }
+      } else if (
+        move.value.lastMove.charCodeAt(0) - 97 === this.state.selectedSource &&
+        move.value.lastMove.charCodeAt(1) - 97 === index
+      ) {
+        return this.renderSelectSquare(index, true);
+      }
+    } else if (move.value.lastMove.charCodeAt(0) - 97 === index) {
+      return this.renderSelectSquare(index, false);
+    }
+    return null;
+  }
+
+  renderSelectSquare(index, alreadySelected) {
     const onClick = (e) => this.onClickSquare(index);
-    const selectorColor = alreadySelected ? "red" : "gray";
+    const selectorColor = alreadySelected ? "red" : "yellow";
     const style = {
       opacity: "70%",
       position: "relative",
@@ -375,7 +439,7 @@ class SiamBoard extends React.Component {
     );
   }
 
-  renderDirection(index) {
+  renderSelectDirection(index, selectedDir = null) {
     const style = {
       opacity: "70%",
       position: "relative",
@@ -383,7 +447,7 @@ class SiamBoard extends React.Component {
       bottom: -this.ICON_SIZE,
     };
 
-    const selectorColor = "gray";
+    const selectorColors = ["yellow", "red"];
     const THICK = 0.3;
     const PAD = 1.0 - THICK - THICK;
 
@@ -401,7 +465,7 @@ class SiamBoard extends React.Component {
               <td
                 className="p-0"
                 style={{
-                  backgroundColor: selectorColor,
+                  backgroundColor: selectorColors[selectedDir === "U" ? 1 : 0],
                   width: this.ICON_SIZE * PAD,
                 }}
                 onClick={onClickUp}
@@ -412,7 +476,7 @@ class SiamBoard extends React.Component {
               <td
                 className="p-0"
                 style={{
-                  backgroundColor: selectorColor,
+                  backgroundColor: selectorColors[selectedDir === "L" ? 1 : 0],
                   width: this.ICON_SIZE * THICK,
                 }}
                 onClick={onClickLeft}
@@ -421,7 +485,7 @@ class SiamBoard extends React.Component {
               <td
                 className="p-0"
                 style={{
-                  backgroundColor: selectorColor,
+                  backgroundColor: selectorColors[selectedDir === "R" ? 1 : 0],
                   width: this.ICON_SIZE * THICK,
                 }}
                 onClick={onClickRight}
@@ -432,7 +496,7 @@ class SiamBoard extends React.Component {
               <td
                 className="p-0"
                 style={{
-                  backgroundColor: selectorColor,
+                  backgroundColor: selectorColors[selectedDir === "D" ? 1 : 0],
                   width: this.ICON_SIZE * PAD,
                 }}
                 onClick={onClickDown}
@@ -446,36 +510,60 @@ class SiamBoard extends React.Component {
   }
 
   onClickDirection(index, direction) {
-    console.log(`onClickDirection ${index} ${direction}`);
+    console.log(
+      `onClickDirection ${index} ${direction} ${this.props.board.nextPlayer}`
+    );
+
+    if (index === this.OFFBOARD) {
+      this.setState({ ...this.state, selectedReserveDirection: direction });
+      return;
+    }
+
+    const playerDirection =
+      this.props.board.nextPlayer === "p1"
+        ? direction.toUpperCase()
+        : direction.toLowerCase();
+
     const from =
-      this.state.selectedSource === this.RESERVE
-        ? "."
+      this.state.selectedSource === this.OFFBOARD
+        ? this.state.selectedReserveDirection
         : String.fromCharCode(97 + this.state.selectedSource);
+
     const to =
-      this.state.selectedTarget === this.RESERVE
+      this.state.selectedTarget === this.OFFBOARD
         ? "."
         : String.fromCharCode(97 + this.state.selectedTarget);
 
     this.setState({
       selectedSource: null,
+      selectedReserveDirection: null,
       selectedTarget: null,
     });
 
-    this.props.onPlayMove(from + to + direction);
+    this.props.onPlayMove(from + to + playerDirection);
   }
 
   onClickSquare(index) {
-    console.log(`onClickSquare ${index}`);
+    console.log(
+      `onClickSquare ${index} ${this.state.selectedSource} ${this.state.selectedTarget}`
+    );
     if (this.state.selectedSource === index) {
       this.setState({
         ...this.state,
-        selectedSource: null,
-        selectedTarget: null,
+        selectedSource: index,
+        selectedTarget: index,
       });
-    } else if (this.state.selectedTarget === index) {
-      this.setState({ ...this.state, selectedTarget: null });
     } else if (this.state.selectedSource == null) {
       this.setState({ ...this.state, selectedSource: index });
+    } else if (index === this.OFFBOARD) {
+      this.setState({
+        selectedSource: null,
+        selectedReserveDirection: null,
+        selectedTarget: null,
+      });
+
+      const from = String.fromCharCode(97 + this.state.selectedSource);
+      this.props.onPlayMove(from + "..");
     } else {
       this.setState({ ...this.state, selectedTarget: index });
     }

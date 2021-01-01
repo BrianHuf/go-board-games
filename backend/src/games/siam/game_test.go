@@ -36,7 +36,6 @@ func Test_Basic(t *testing.T) {
 	// json2, _ := json.MarshalIndent(available1[4].GetJSON(), "", " ")
 	// t.Log("\n" + string(json2))
 
-
 	// t.Log("\n" + move2.BoardString())
 	// t.Log("\n" + move2.MoveString())
 	// t.Log("Passed")
@@ -52,10 +51,13 @@ func Test_Basic(t *testing.T) {
 // 	assert.Equal(t, "p1", status.GetWinner().String())
 // }
 
-// func Test_SimpleGameByString(t *testing.T) {
-// 	lastMove := NewGame().PlayMovesByString("01326")
+func Test_SimpleGameByString(t *testing.T) {
+	game := NewGame()
+	lastMove := game.PlayMovesByString("UvRUwlvqRwrlqqU")
 
-// 	t.Log("\n" + lastMove.BoardString())
-// 	assert.Equal(t, "p1", lastMove.GetGameStatus().GetWinner().String())
-// 	t.Log("Passed")
-// }
+	t.Log("\n" + lastMove.BoardString())
+	assert.False(t, lastMove.GetGameStatus().IsDone())
+	assert.Equal(t, 20, len(lastMove.NextAvailableMoves()))
+	lastMove.GetGameStatus()
+	t.Log("Passed")
+}
