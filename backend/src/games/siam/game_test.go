@@ -1,6 +1,8 @@
 package siam
 
 import (
+	"me.dev/go-board-game/mcts"
+
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -53,11 +55,23 @@ func Test_Basic(t *testing.T) {
 
 func Test_SimpleGameByString(t *testing.T) {
 	game := NewGame()
-	lastMove := game.PlayMovesByString("UvRUwlvqRwrlqqU")
+	lastMove := game.PlayMovesByString("RkRUxuRpUxxlpqUxxdqlRx..")
 
 	t.Log("\n" + lastMove.BoardString())
 	assert.False(t, lastMove.GetGameStatus().IsDone())
 	assert.Equal(t, 20, len(lastMove.NextAvailableMoves()))
 	lastMove.GetGameStatus()
 	t.Log("Passed")
+}
+
+func Test_Ai(t *testing.T) {
+	game := NewGame()
+	_, root := mcts.FindBestMove(game, mcts.BasicConfig())
+	assert.NotNil(t, root)
+}
+
+func Test_AiParallel(t *testing.T) {
+	game := NewGame()
+	_, root := mcts.FindBestMove(game, mcts.MultithreadedConfig())
+	assert.NotNil(t, root)
 }

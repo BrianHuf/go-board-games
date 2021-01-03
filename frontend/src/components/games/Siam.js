@@ -64,15 +64,15 @@ export default class Siam extends React.Component {
       loading: false,
     });
 
-    // if (this.isComputerMoveNext()) {
-    //     this.onPlayAi();
-    // }
+    if (this.isComputerMoveNext()) {
+      this.onPlayAi();
+    }
   }
 
   async onPlayAi() {
     console.log("onPlayAI");
     const moves = this.getPlayedMoves(this.props.location.pathname);
-    const aiMoves = await rest.getAiMove("Siam", moves);
+    const aiMoves = await rest.getAiMove("siam", moves);
 
     let maxScore = -1;
     let best = null;
@@ -298,7 +298,9 @@ class SiamBoard extends React.Component {
     const isCurrentPlayer = this.props.board.nextPlayer === `p${player + 1}`;
     const Icon = player ? Circle : CircleFill;
 
-    const selector = isCurrentPlayer ? this.renderOffboardSelector() : null;
+    const selector = isCurrentPlayer
+      ? this.renderSquareSelector(this.OFFBOARD)
+      : null;
 
     if (!selector) {
       return (
@@ -354,7 +356,7 @@ class SiamBoard extends React.Component {
         this.state.selectedReserveDirection
       );
     }
-    
+
     if (this.state.selectedSource) {
       return null;
     }
@@ -397,8 +399,8 @@ class SiamBoard extends React.Component {
     } else if (this.state.selectedSource) {
       if (this.state.selectedSource === this.OFFBOARD) {
         const dir = this.state.selectedReserveDirection;
-        if (dir == null) {
-          return null;
+        if (dir == null && index === this.state.selectedSource) {
+          return this.renderSelectDirection(index);
         }
 
         if (
@@ -413,8 +415,12 @@ class SiamBoard extends React.Component {
       ) {
         return this.renderSelectSquare(index, true);
       }
-    } else if (move.value.lastMove.charCodeAt(0) - 97 === index) {
-      return this.renderSelectSquare(index, false);
+    } else {
+      if (index === this.OFFBOARD && move.value.lastMove.charCodeAt(0) < 97) {
+        return this.renderSelectSquare(index, false);
+      } else if (move.value.lastMove.charCodeAt(0) - 97 === index) {
+        return this.renderSelectSquare(index, false);
+      }
     }
     return null;
   }

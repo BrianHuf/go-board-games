@@ -61,8 +61,8 @@ type Piece byte
 // String ...
 func (p Piece) String() string {
 	return [...]string{"(empty)", "Mountain",
-		"P1 Up", "P1 Down", "P1 Right", "P1 Left",
-		"P2 Up", "P2 Down", "P2 Right", "P2 Left"}[p]
+		"P1 Up", "P1 Down", "P1 Left", "P1 Right",
+		"P2 Up", "P2 Down", "P2 Left", "P2 Right"}[p]
 }
 
 // Char ...
@@ -71,8 +71,8 @@ func (p Piece) Char() string {
 		return "."
 	}
 	return [...]string{".", "M",
-		"U", "D", "R", "L",
-		"u", "d", "r", "l"}[p]
+		"U", "D", "L", "R",
+		"u", "d", "l", "r"}[p]
 }
 
 var (
@@ -215,7 +215,7 @@ func (a *Move) NextAvailableMoves() (available []common.Move) {
 			}
 		}
 
-		if piece != constantPieceEmpty && BOARD.IsEdge(location) && piece.FromPlayer(nextPlayer) {
+		if piece.FromPlayer(nextPlayer) && BOARD.IsEdge(location) {
 			// REMOVE piece
 			newBoard := a.board
 			newBoard[index] = constantPieceEmpty
@@ -260,7 +260,6 @@ func (a *Move) NextAvailableMoves() (available []common.Move) {
 
 	if mountainCount < 3 {
 		available = []common.Move{}
-
 		return
 	}
 

@@ -11,7 +11,7 @@ func (l Location) index() byte {
 }
 
 func (l *Location) String() string {
-	if l == nil {
+	if l == nil || *l == Offboard {
 		return "."
 	}
 
