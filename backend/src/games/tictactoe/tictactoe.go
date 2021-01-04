@@ -21,29 +21,29 @@ var winningBoardMasks []uint32 = []uint32{
 	73, 146, 292, // vertical
 	84, 273} // diagonal
 
-// Move ...
-type Move struct {
+// TicTacToeMove ...
+type TicTacToeMove struct {
 	state    uint32
-	previous *Move
+	previous *TicTacToeMove
 }
 
 // StateJSON ...
 type StateJSON struct {
-	State string `json:"state"`
-	LastMove string `json:"lastMove"`
-	IsDone bool `json:"isDone"`
-	Winner string `json:"winner,omitempty"`
+	State      string `json:"state"`
+	LastMove   string `json:"lastMove"`
+	IsDone     bool   `json:"isDone"`
+	Winner     string `json:"winner,omitempty"`
 	NextPlayer string `json:"nextPlayer,omitempty"`
 }
 
 // GetJSON ...
-func (a *Move) GetJSON() interface{} {
+func (a *TicTacToeMove) GetJSON() interface{} {
 	status := a.GetGameStatus()
 
 	var winner string = ""
 	var nextPlayer string = ""
 	if status.IsDone() {
-		if (status.GetWinner() != nil) {
+		if status.GetWinner() != common.PlayerNoOne {
 			winner = status.GetWinner().String()
 		}
 	} else {
@@ -51,34 +51,34 @@ func (a *Move) GetJSON() interface{} {
 	}
 
 	return StateJSON{
-		State: a.getBoardString(), 
-		LastMove: a.MoveString(),
-		IsDone: status.IsDone(),
-		Winner: winner,
+		State:      a.getBoardString(),
+		LastMove:   a.MoveString(),
+		IsDone:     status.IsDone(),
+		Winner:     winner,
 		NextPlayer: nextPlayer}
 }
 
 // GetPlayer ...
-func (a *Move) GetPlayer() common.Player {
+func (a *TicTacToeMove) GetPlayer() common.Player {
 	if a.previous == nil {
-		return common.NoPlayer{}
+		return common.PlayerNoOne
 	}
 	if isPlayer1(a.state) {
-		return common.NewPlayer(0)
+		return common.Player1
 	}
-	return common.NewPlayer(1)
+	return common.Player2
 }
 
-func (a *Move) nextPlayer() common.Player {
+func (a *TicTacToeMove) nextPlayer() common.Player {
 	if a.previous == nil || !isPlayer1(a.state) {
-		return common.NewPlayer(0)
+		return common.Player1
 	} else {
-		return common.NewPlayer(1)
+		return common.Player2
 	}
 }
 
 // GetPrevious ...
-func (a *Move) GetPrevious() common.Move {
+func (a *TicTacToeMove) GetPrevious() common.Move {
 	if a.previous == nil {
 		return nil
 	}
@@ -86,12 +86,12 @@ func (a *Move) GetPrevious() common.Move {
 }
 
 // String ...
-func (a *Move) String() string {
+func (a *TicTacToeMove) String() string {
 	return "board"
 }
 
 // NextAvailableMoves ...
-func (a *Move) NextAvailableMoves() (available []common.Move) {
+func (a *TicTacToeMove) NextAvailableMoves() (available []common.Move) {
 	isNextPlayerP1 := !isPlayer1(a.state)
 	board := getCombinedBoard(a.state)
 	for i := 0; i < 9; i++ {
@@ -102,7 +102,7 @@ func (a *Move) NextAvailableMoves() (available []common.Move) {
 			}
 
 			newState := flipPlayer(a.state) | bit
-			m := Move{previous: a, state: newState}
+			m := TicTacToeMove{previous: a, state: newState}
 			available = append(available, &m)
 		}
 	}
@@ -111,7 +111,7 @@ func (a *Move) NextAvailableMoves() (available []common.Move) {
 }
 
 // GetGameStatus ...
-func (a *Move) GetGameStatus() common.GameStatus {
+func (a *TicTacToeMove) GetGameStatus() common.GameStatus {
 	if a.previous == nil {
 		return common.NewGameStatusInProgress()
 	}
@@ -130,14 +130,14 @@ func (a *Move) GetGameStatus() common.GameStatus {
 }
 
 // BoardString CLI based represention of game give current move
-func (a *Move) BoardString() string {
+func (a *TicTacToeMove) BoardString() string {
 	b := a.getBoardString()
 
 	return fmt.Sprintf("%c|%c|%c\n-----\n%c|%c|%c\n-----\n%c|%c|%c\n",
 		b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7], b[8])
 }
 
-func (a *Move) getBoardString() string {
+func (a *TicTacToeMove) getBoardString() string {
 	board1 := getBoard(a.state, true)
 	board2 := getBoard(a.state, false)
 
@@ -157,8 +157,8 @@ func (a *Move) getBoardString() string {
 }
 
 // MoveString represents the current move
-func (a *Move) MoveString() string {
-	if (a.previous == nil) {
+func (a *TicTacToeMove) MoveString() string {
+	if a.previous == nil {
 		return "-"
 	}
 
@@ -171,18 +171,18 @@ func (a *Move) MoveString() string {
 }
 
 // PlayMovesByIndex ...
-func (a *Move) PlayMovesByIndex(moves *[]int) common.Move {
+func (a *TicTacToeMove) PlayMovesByIndex(moves *[]int) common.Move {
 	return common.PlayMovesByIndex(a, moves)
 }
 
 // PlayMovesByString ...
-func (a *Move) PlayMovesByString(moves string) common.Move {
+func (a *TicTacToeMove) PlayMovesByString(moves string) common.Move {
 	return common.PlayMovesByString(a, moves, 1)
 }
 
-// NewGame start a new TicToe game by returning the opening move
-func NewGame() common.Move {
-	return &Move{262144, nil}
+// NewTicTacToeGame start a new TicToe game by returning the opening move
+func NewTicTacToeGame() common.Move {
+	return &TicTacToeMove{262144, nil}
 }
 
 // IsCenter return True is move is the in the center of the board

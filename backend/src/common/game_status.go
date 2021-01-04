@@ -2,7 +2,7 @@ package common
 
 // GameStatusData simple data structure
 type GameStatusData struct {
-	Done bool `json:"isDone"`
+	Done   bool   `json:"isDone"`
 	Winner Player `json:"winner"`
 }
 
@@ -13,12 +13,12 @@ func NewGameStatusWinner(p Player) GameStatus {
 
 // NewGameStatusTied ...
 func NewGameStatusTied() GameStatus {
-	return &GameStatusData{Done: true, Winner: nil}
+	return &GameStatusData{Done: true, Winner: PlayerNoOne}
 }
 
 // NewGameStatusInProgress ...
 func NewGameStatusInProgress() GameStatus {
-	return &GameStatusData{Done: false, Winner: nil}
+	return &GameStatusData{Done: false, Winner: PlayerNoOne}
 }
 
 // IsDone ...
@@ -33,7 +33,7 @@ func (status *GameStatusData) GetWinner() Player {
 
 func (status *GameStatusData) String() string {
 	if status.Done {
-		if status.Winner == nil {
+		if status.Winner == PlayerNoOne {
 			return "tie"
 		}
 		return "winner " + status.Winner.String()

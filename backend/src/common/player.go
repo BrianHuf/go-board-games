@@ -2,38 +2,31 @@ package common
 
 import "strconv"
 
-// NoPlayer is always used as the first move in a Game
-type NoPlayer struct {
-}
+var (
+	// PlayerNoOne use for initial game state
+	PlayerNoOne = Player(0)
+
+	// Player1 fist player
+	Player1 = Player(1)
+
+	// Player2 second player
+	Player2 = Player(2)
+)
 
 // ToString ...
-func (a NoPlayer) String() string {
-	return "<opening>"
+func (player Player) String() string {
+	if player == 0 {
+		return "<no-one>"
+	}
+	return "p" + strconv.Itoa(int(player))
 }
 
-// Equals ...
-func (a NoPlayer) Equals(b Player) bool {
-	_, ok := b.(NoPlayer)
-	return ok
-}
-
-// NewPlayer ...
-func NewPlayer(num uint) PlayerData {
-	return PlayerData{num}
-}
-
-// PlayerData common class to suport n-player games
-type PlayerData struct {
-	num uint
-}
-
-// ToString ...
-func (a PlayerData) String() string {
-	return "p" + strconv.Itoa(int(a.num+1))
-}
-
-// Equals ...
-func (a PlayerData) Equals(b Player) bool {
-	other, ok := b.(PlayerData)
-	return ok && (a.num == other.num)
+// Next P1 -> P2 or P2 -> P1
+func (player Player) Next() Player {
+	if player == 1 {
+		return Player(2)
+	} else if player == 2 {
+		return Player(1)
+	}
+	panic("next player not found")
 }

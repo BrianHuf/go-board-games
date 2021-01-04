@@ -1,4 +1,4 @@
-package siam
+package games
 
 import (
 	"bytes"
@@ -13,24 +13,17 @@ import (
   The winning player pushes a mountain off the board
 */
 
-// Players
-var (
-	PLAYER_1 = common.NewPlayer(0)
-	PLAYER_2 = common.NewPlayer(1)
-)
-
-// Board
-var BOARD = common.Board(5)
+var board = common.Board(5)
 
 // Direction ...
 type Direction byte
 
 const (
-	DirectionUp Direction = iota
-	DirectionDown
-	DirectionLeft
-	DirectionRight
-	DirectionNone
+	directionUp Direction = iota
+	directionDown
+	directionLeft
+	directionRight
+	directionNone
 )
 
 func (d Direction) String() string {
@@ -39,16 +32,16 @@ func (d Direction) String() string {
 
 // Opposite up -> down, left -> right, etc..
 func (d Direction) Opposite() (opposite Direction) {
-	if d == DirectionUp {
-		opposite = DirectionDown
-	} else if d == DirectionDown {
-		opposite = DirectionUp
-	} else if d == DirectionLeft {
-		opposite = DirectionRight
-	} else if d == DirectionRight {
-		opposite = DirectionLeft
-	} else if d == DirectionNone {
-		opposite = DirectionNone
+	if d == directionUp {
+		opposite = directionDown
+	} else if d == directionDown {
+		opposite = directionUp
+	} else if d == directionLeft {
+		opposite = directionRight
+	} else if d == directionRight {
+		opposite = directionLeft
+	} else if d == directionNone {
+		opposite = directionNone
 	} else {
 		panic("invalid direction")
 	}
@@ -82,10 +75,10 @@ var (
 
 // PiecesByPlayer ...
 func PiecesByPlayer(p common.Player) []Piece {
-	if p.Equals(PLAYER_1) {
+	if p == common.Player1 {
 		return []Piece{
 			Piece(2), Piece(3), Piece(4), Piece(5)}
-	} else if p.Equals(PLAYER_2) {
+	} else if p == common.Player2 {
 		return []Piece{
 			Piece(6), Piece(7), Piece(8), Piece(9)}
 	}
@@ -95,22 +88,22 @@ func PiecesByPlayer(p common.Player) []Piece {
 
 // FromPlayer ...
 func (p Piece) FromPlayer(player common.Player) bool {
-	return (player.Equals(PLAYER_1) && byte(p) > 1 && byte(p) < 6) ||
-		(player.Equals(PLAYER_2) && byte(p) > 5)
+	return (player == common.Player1 && byte(p) > 1 && byte(p) < 6) ||
+		(player == common.Player2 && byte(p) > 5)
 }
 
 // GetDirection return Up/Down/Left/Right
 func (p Piece) GetDirection() Direction {
 	if p == 2 || p == 6 {
-		return DirectionUp
+		return directionUp
 	} else if p == 3 || p == 7 {
-		return DirectionDown
+		return directionDown
 	} else if p == 4 || p == 8 {
-		return DirectionLeft
+		return directionLeft
 	} else if p == 5 || p == 9 {
-		return DirectionRight
+		return directionRight
 	}
-	return DirectionNone
+	return directionNone
 }
 
 // BoardState 5x5 Board
@@ -142,11 +135,11 @@ func (a *Move) GetJSON() interface{} {
 	var winner string = ""
 	var nextPlayer string = ""
 	if status.IsDone() {
-		if status.GetWinner() != nil {
+		if status.GetWinner() != common.PlayerNoOne {
 			winner = status.GetWinner().String()
 		}
 	} else {
-		nextPlayer = a.nextPlayer().String()
+		nextPlayer = a.GetPlayer().Next().String()
 	}
 
 	return StateJSON{
@@ -160,14 +153,6 @@ func (a *Move) GetJSON() interface{} {
 // GetPlayer ...
 func (a *Move) GetPlayer() common.Player {
 	return a.playedBy
-}
-
-func (a *Move) nextPlayer() common.Player {
-	if a.GetPlayer() == PLAYER_1 {
-		return PLAYER_2
-	}
-
-	return PLAYER_1
 }
 
 // GetPrevious ...
@@ -185,7 +170,7 @@ func (a *Move) String() string {
 
 // NextAvailableMoves ...
 func (a *Move) NextAvailableMoves() (available []common.Move) {
-	nextPlayer := a.nextPlayer()
+	nextPlayer := a.GetPlayer().Next()
 	freePieces := 5
 
 	var addPieceMoves []common.Move
@@ -193,8 +178,8 @@ func (a *Move) NextAvailableMoves() (available []common.Move) {
 
 	for index, piece := range a.board {
 		location := common.Location(byte(index))
-		x := BOARD.X(location)
-		y := BOARD.Y(location)
+		x := board.X(location)
+		y := board.Y(location)
 
 		if piece == constantPieceMountain {
 			mountainCount++
@@ -203,19 +188,19 @@ func (a *Move) NextAvailableMoves() (available []common.Move) {
 		// ADD PIECES
 		if x == 0 {
 			addPieceMoves = a.tryAdd(addPieceMoves, location, 3)
-		} else if x == BOARD.Width()-1 {
+		} else if x == board.Width()-1 {
 			addPieceMoves = a.tryAdd(addPieceMoves, location, 2)
 		}
 
-		if (x != 0 && x != BOARD.Width()-1) || piece != constantPieceEmpty { // avoid duplicate corner moves
+		if (x != 0 && x != board.Width()-1) || piece != constantPieceEmpty { // avoid duplicate corner moves
 			if y == 0 {
 				addPieceMoves = a.tryAdd(addPieceMoves, location, 1)
-			} else if y == BOARD.Height()-1 {
+			} else if y == board.Height()-1 {
 				addPieceMoves = a.tryAdd(addPieceMoves, location, 0)
 			}
 		}
 
-		if piece.FromPlayer(nextPlayer) && BOARD.IsEdge(location) {
+		if piece.FromPlayer(nextPlayer) && board.IsEdge(location) {
 			// REMOVE piece
 			newBoard := a.board
 			newBoard[index] = constantPieceEmpty
@@ -275,7 +260,7 @@ func (a *Move) tryAdd(available []common.Move, to common.Location, dir Direction
 	if validMove {
 		templateBoard := a.applyMovePush(common.Offboard, to, dir)
 
-		nextPlayer := a.nextPlayer()
+		nextPlayer := a.GetPlayer().Next()
 		for _, newPiece := range PiecesByPlayer(nextPlayer) {
 			var newBoard = templateBoard
 			newBoard[to] = newPiece
@@ -302,7 +287,7 @@ func (a *Move) tryMovePush(available []common.Move, from common.Location, dir Di
 		if validMove {
 			templateBoard := a.applyMovePush(from, to, dir)
 
-			nextPlayer := a.nextPlayer()
+			nextPlayer := a.GetPlayer().Next()
 			for _, newPiece := range PiecesByPlayer(nextPlayer) {
 				var newBoard = templateBoard
 				newBoard[to] = newPiece
@@ -349,6 +334,9 @@ func (a *Move) canMovePush(from common.Location, to common.Location, dir Directi
 				canMove = false
 				return
 			}
+		} else if power == 0 && current == to && a.board[current] != constantPieceEmpty {
+			canMove = false
+			return
 		}
 
 		if current == common.Offboard {
@@ -370,7 +358,7 @@ func (a *Move) applyMovePush(from common.Location, to common.Location, dir Direc
 	newBoard := a.board
 
 	if from == common.Offboard {
-		replaced = PiecesByPlayer(a.nextPlayer())[0]
+		replaced = PiecesByPlayer(a.GetPlayer().Next())[0]
 	} else {
 		replaced = newBoard[from]
 		newBoard[from] = constantPieceEmpty
@@ -403,35 +391,35 @@ func (a *Move) applyMovePush(from common.Location, to common.Location, dir Direc
 }
 
 func move(location common.Location, dir Direction) (onBoard bool, newLocation common.Location) {
-	var x = BOARD.X(location)
-	var y = BOARD.Y(location)
+	var x = board.X(location)
+	var y = board.Y(location)
 
 	if dir == 0 {
 		if y == 0 {
 			return false, location
 		}
-		return true, BOARD.At(x, y-1)
+		return true, board.At(x, y-1)
 	} else if dir == 1 {
-		if y == BOARD.Height()-1 {
+		if y == board.Height()-1 {
 			return false, location
 		}
-		return true, BOARD.At(x, y+1)
+		return true, board.At(x, y+1)
 	} else if dir == 2 {
 		if x == 0 {
 			return false, location
 		}
-		return true, BOARD.At(x-1, y)
+		return true, board.At(x-1, y)
 	} else if dir == 3 {
-		if x == BOARD.Width()-1 {
+		if x == board.Width()-1 {
 			return false, location
 		}
-		return true, BOARD.At(x+1, y)
+		return true, board.At(x+1, y)
 	}
 	return false, location
 }
 
 func (a *Move) addMove(available []common.Move, from common.Location, to common.Location, dir Direction) []common.Move {
-	nextPlayer := a.nextPlayer()
+	nextPlayer := a.GetPlayer().Next()
 	for _, newPiece := range PiecesByPlayer(nextPlayer) {
 		var newBoard = a.board
 		newBoard[from] = constantPieceEmpty
@@ -516,7 +504,7 @@ func NewGame() common.Move {
 	initialBoard[13] = constantPieceMountain
 
 	return &Move{
-		playedBy: common.NoPlayer{},
+		playedBy: common.PlayerNoOne,
 		previous: nil,
 		board:    initialBoard,
 		fromLoc:  common.Offboard,

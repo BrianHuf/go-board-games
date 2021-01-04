@@ -30,7 +30,7 @@ func Test_Basic(t *testing.T) {
 }
 
 func Test_SimpleGameByIndex(t *testing.T) {
-	lastMove := NewGame().PlayMovesByIndex(&[]int{0, 0, 1, 0, 2})
+	lastMove := NewTicTacToeGame().PlayMovesByIndex(&[]int{0, 0, 1, 0, 2})
 
 	t.Log("\n" + lastMove.BoardString())
 	status := lastMove.GetGameStatus()

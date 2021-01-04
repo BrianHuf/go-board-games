@@ -1,4 +1,4 @@
-package siam
+package games
 
 import (
 	"me.dev/go-board-game/mcts"
@@ -55,7 +55,7 @@ func Test_Basic(t *testing.T) {
 
 func Test_SimpleGameByString(t *testing.T) {
 	game := NewGame()
-	lastMove := game.PlayMovesByString("RkRUxuRpUxxlpqUxxdqlRx..")
+	lastMove := game.PlayMovesByString("UvUUxuvqUxsuqlURfrlgUfgu")
 
 	t.Log("\n" + lastMove.BoardString())
 	assert.False(t, lastMove.GetGameStatus().IsDone())

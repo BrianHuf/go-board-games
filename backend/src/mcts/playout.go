@@ -26,7 +26,7 @@ func Playout(m common.Move, config Config) (score float32, finalMove common.Move
 		}
 	}
 
-	score = config.PlayoutScorer(currentMove, config.PlayoutMaxMoves, startingPlayer, nil)
+	score = config.PlayoutScorer(currentMove, config.PlayoutMaxMoves, startingPlayer, common.PlayerNoOne)
 	finalMove = currentMove
 	return
 }
@@ -47,9 +47,9 @@ func BasicPlayoutSelector(m common.Move) (nextMove common.Move) {
 
 // BasicPlayoutScorer simple score 0.0 if lost, 0.5 if tie, 1.0 if win
 func BasicPlayoutScorer(finalMove common.Move, numMoves int, startingPlayer common.Player, winningPlayer common.Player) (score float32) {
-	if winningPlayer == nil {
+	if winningPlayer == common.PlayerNoOne {
 		score = 0.5
-	} else if winningPlayer.Equals(startingPlayer) {
+	} else if winningPlayer == startingPlayer {
 		score = 1.0
 	} else {
 		score = 0.0

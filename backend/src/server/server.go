@@ -9,7 +9,7 @@ import (
 	"github.com/rs/cors"
 
 	"me.dev/go-board-game/common"
-	"me.dev/go-board-game/games/siam"
+	"me.dev/go-board-game/games"
 	"me.dev/go-board-game/games/tictactoe"
 	"me.dev/go-board-game/mcts"
 )
@@ -25,8 +25,8 @@ func handleRequests() {
 
 	r := mux.NewRouter().StrictSlash(true)
 
-	addGame(r, "tictactoe", tictactoe.NewGame)
-	addGame(r, "siam", siam.NewGame)
+	addGame(r, "tictactoe", tictactoe.NewTicTacToeGame)
+	addGame(r, "siam", games.NewGame)
 
 	r.PathPrefix("/").Handler(http.StripPrefix("/", fs))
 

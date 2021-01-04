@@ -3,10 +3,7 @@ package common
 import "fmt"
 
 // Player is a player in the game
-type Player interface {
-	Equals(other Player) bool
-	fmt.Stringer
-}
+type Player byte
 
 // GameStatus interface
 type GameStatus interface {
